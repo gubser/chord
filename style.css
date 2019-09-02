@@ -1,0 +1,20 @@
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.app-container {
+  min-height: 100vh;
+}
+
+.midi-selector {
+  background-color: gray;
+}
+
+.mode-selector {
+  background-color: lavender;
+}
+
+#chord-display {
+  
+}

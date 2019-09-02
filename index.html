@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="d-flex flex-column justify-content-center align-items-center" style="min-height: 100vh">
+    <!-- settings -->
+    <div>
+      <div class="midi-selector">
+        <select id="select-midi-input"></select>
+      </div>
+      <div class="mode-selector">
+      </div>
+    </div>
+
+    <!-- output -->
+    <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center">
+      <div id="chord-display"></div>
+      chord array muss sortiert werden nach ton..
+    </div>
+  </div>
+
+  <!-- load bootstrap -->
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" crossorigin="anonymous"
+    integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" crossorigin="anonymous"
+    integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"></script>
+
+  <!-- load vexflow and app -->
+  <script src="https://unpkg.com/vexflow@1.2.89/releases/vexflow-min.js"></script>
+  <script src="chord.js"></script>
+</body>
+
+</html>
