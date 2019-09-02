@@ -15,11 +15,12 @@ class ChordRenderer {
     this._score = this._vf.EasyScore()
   }
 
-  render (chords) {
+  render (chords, key) {
     // clear output
     this._vf.context.clear()
 
     // create new system
+    // TODO: Chord array needs to be sorted ascending.
     var system = this._vf.System()
 
     const score = this._score
@@ -35,13 +36,15 @@ class ChordRenderer {
 
     system.addStave({
       voices: [score.voice(score.notes(notes))]
-    }).addClef('treble')
+    }).addClef('treble').setKeySignature(key)
 
     this._vf.draw()
   }
 }
 
 const chordRenderer = new ChordRenderer('chord-display')
+
+chordRenderer.render(['C4', 'E4', 'G3'], 'Cm')
 
 function showError (message) {
   const elem = document.getElementById('error-message')
@@ -54,10 +57,6 @@ function showError (message) {
     elem.classList.add('invisible')
   }
 }
-
-showError('Chord array needs to be sorted ascending.')
-
-document.onclick = function () { showError('wat') }
 
 function onmidimessage (event) {
   const data = event.data
@@ -92,7 +91,7 @@ function onmidimessage (event) {
         currentChord = currentChord.filter(function (k) { return k !== noteRepr })
       }
 
-      chordRenderer.render(currentChord)
+      chordRenderer.render(currentChord, 'C')
     }
   }
 }
@@ -113,6 +112,8 @@ function fetchMidiInputs () {
         // save midi access to global state
         midiAccess = m
 
+        let countAdded = 0
+
         midiAccess.inputs.forEach(function (port, key) {
           if (!port.name.startsWith('Midi Through Port-')) {
             // open the first it finds
@@ -125,8 +126,14 @@ function fetchMidiInputs () {
             opt.value = key
             opt.text = port.name
             document.getElementById('select-midi-input').add(opt)
+
+            countAdded++
           }
         })
+
+        if (countAdded === 0) {
+          showError('No MIDI devices found. Please connect one.')
+        }
       })
       .catch(error => showError(error))
   } else {
