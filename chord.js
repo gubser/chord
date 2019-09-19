@@ -1,14 +1,19 @@
+// Live rendering of piano keys to sheet music in the browser
+// This file has two parts: ChordRenderer and MIDI input handling
+
 /* global Vex */
 
+//
 // constants
 const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 
+//
 // state
 let midiAccess
 let currentMidiInput
 
-// code
-
+//
+// helper functions
 function showError (message) {
   const elem = document.getElementById('error-message')
 
@@ -21,16 +26,30 @@ function showError (message) {
   }
 }
 
+//
+// Render chords in sheet music. Pass the id of a <div> and start
+// adding notes like this:
+//
+// const cr = ChordRenderer("mydiv")
+// cr.addNote('C', 2)
+// cr.addNote('E', 2)
+// cr.addNote('G', 2)
+//
+// You can also remove notes:
+// cr.removeNote('C', 2)
 class ChordRenderer {
   constructor (elementId) {
     this._vf = new Vex.Flow.Factory({ renderer: { elementId } })
     this._score = this._vf.EasyScore()
 
+    // holds current chord. e.g. [['C', 2], ['E', 2], ['G', 2]]
     this.chord = []
 
+    // render empty bar
     this.render()
   }
 
+  // vexflow requires chord notes to be in sorted order
   _ensureSortedChord () {
     // first sort by octave and then by note name
     this.chord.sort(function ([noteNameA, octaveA], [noteNameB, octaveB]) {
@@ -87,6 +106,7 @@ class ChordRenderer {
 
     const score = this._score
 
+    // add notes and draw it
     let notes
     if (this.chord.length === 1) {
       notes = `${this._noteNameOctaveTupleToString(this.chord[0])}/q, B4/h/r.`
