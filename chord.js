@@ -6,16 +6,67 @@ const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', '
 // state
 let midiAccess
 let currentMidiInput
-let currentChord = []
 
 // code
+
+function noteNameOctaveTupleToString (t) {
+  return `${t[0]}${t[1]}`
+}
+
 class ChordRenderer {
   constructor (elementId) {
     this._vf = new Vex.Flow.Factory({ renderer: { elementId } })
     this._score = this._vf.EasyScore()
+
+    this.chord = []
+
+    this.render()
   }
 
-  render (chords, key) {
+  ensureSortedChord () {
+    // first sort by octave and then by note name
+    this.chord.sort(function ([noteNameA, octaveA], [noteNameB, octaveB]) {
+      if (octaveA < octaveB) {
+        return -1
+      } else if (octaveA > octaveB) {
+        return 1
+      } else {
+        // same octave, sort by note name
+        const noteNameIndexA = noteNames.indexOf(noteNameA)
+        const noteNameIndexB = noteNames.indexOf(noteNameB)
+        if (noteNameIndexA < noteNameIndexB) {
+          return -1
+        } else if (noteNameIndexA > noteNameIndexB) {
+          return 1
+        } else {
+          return 0
+        }
+      }
+    })
+  }
+
+  addNote (noteName, octave) {
+    const alreadyContains = this.chord.some(function ([n, o]) {
+      return n === noteName && o === octave
+    })
+
+    if (!alreadyContains) {
+      this.chord.push([noteName, octave])
+    }
+
+    // vexflow requires chord array to be sorted ascending
+    this.ensureSortedChord()
+    this.render()
+  }
+
+  removeNote (noteName, octave) {
+    this.chord = this.chord.filter(function ([n, o]) {
+      return !(n === noteName && o === octave)
+    })
+    this.render()
+  }
+
+  render () {
     // clear output
     this._vf.context.clear()
 
@@ -26,17 +77,17 @@ class ChordRenderer {
     const score = this._score
 
     let notes
-    if (chords.length === 1) {
-      notes = `${chords[0]}/q, B4/h/r.`
-    } else if (chords.length > 1) {
-      notes = `(${chords.join(' ')})/q, B4/h/r.`
+    if (this.chord.length === 1) {
+      notes = `${noteNameOctaveTupleToString(this.chord[0])}/q, B4/h/r.`
+    } else if (this.chord.length > 1) {
+      notes = `(${this.chord.map(noteNameOctaveTupleToString).join(' ')})/q, B4/h/r.`
     } else {
       notes = 'B4/1/r'
     }
 
     system.addStave({
       voices: [score.voice(score.notes(notes))]
-    }).addClef('treble').setKeySignature(key)
+    }).addClef('treble')
 
     this._vf.draw()
   }
@@ -44,7 +95,7 @@ class ChordRenderer {
 
 const chordRenderer = new ChordRenderer('chord-display')
 
-chordRenderer.render(['C4', 'E4', 'G3'], 'Cm')
+chordRenderer.render([])
 
 function showError (message) {
   const elem = document.getElementById('error-message')
@@ -63,35 +114,28 @@ function onmidimessage (event) {
   if (data.length === 3) {
     // status is the first byte.
     const status = data[0]
+
     // command is the four most significant bits of the status byte.
     const command = status >>> 4
-    // channel 0-15 is the lower four bits.
-    const channel = status & 0xF
-    // console.log(`$Command: ${command.toString(16)}, Channel: ${channel.toString(16)}`);
+
     // just look at note on and note off messages.
     if (command === 0x9 || command === 0x8) {
-      // note number is the second byte.
       const note = data[1]
-      // velocity is the thrid byte.
       const velocity = data[2]
-      const commandName = command === 0x9 ? 'Note On ' : 'Note Off'
+
       // calculate octave and note name.
       const octave = Math.trunc(note / 12) - 1
       const noteName = noteNames[note % 12]
-      console.log(`${commandName} ${noteName}${octave} ${velocity}`)
+      console.log(`${command === 0x9 ? 'Note On ' : 'Note Off'} ${noteName}${octave} ${velocity}`)
 
-      const noteRepr = `${noteName}${octave}`
+      // some devices model the 'note off' command by giving 'note on' command with velocity == 0
       if (command === 0x9 && velocity > 0) {
-        // note on
-        if (currentChord.indexOf(noteRepr) === -1) {
-          currentChord.push(noteRepr)
-        }
+        // note on, add to chord set
+        chordRenderer.addNote(noteName, octave)
       } else {
-        // note off
-        currentChord = currentChord.filter(function (k) { return k !== noteRepr })
+        // note off, remove from chord set
+        chordRenderer.removeNote(noteName, octave)
       }
-
-      chordRenderer.render(currentChord, 'C')
     }
   }
 }
