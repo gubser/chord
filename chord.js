@@ -83,7 +83,6 @@ class ChordRenderer {
     this._vf.context.clear()
 
     // create new system
-    // TODO: Chord array needs to be sorted ascending.
     var system = this._vf.System()
 
     const score = this._score
