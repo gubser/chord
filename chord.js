@@ -9,8 +9,16 @@ let currentMidiInput
 
 // code
 
-function noteNameOctaveTupleToString (t) {
-  return `${t[0]}${t[1]}`
+function showError (message) {
+  const elem = document.getElementById('error-message')
+
+  if (message) {
+    elem.innerText = message
+    elem.classList.remove('invisible')
+  } else {
+    elem.innerText = ''
+    elem.classList.add('invisible')
+  }
 }
 
 class ChordRenderer {
@@ -23,7 +31,7 @@ class ChordRenderer {
     this.render()
   }
 
-  ensureSortedChord () {
+  _ensureSortedChord () {
     // first sort by octave and then by note name
     this.chord.sort(function ([noteNameA, octaveA], [noteNameB, octaveB]) {
       if (octaveA < octaveB) {
@@ -55,7 +63,7 @@ class ChordRenderer {
     }
 
     // vexflow requires chord array to be sorted ascending
-    this.ensureSortedChord()
+    this._ensureSortedChord()
     this.render()
   }
 
@@ -64,6 +72,10 @@ class ChordRenderer {
       return !(n === noteName && o === octave)
     })
     this.render()
+  }
+
+  _noteNameOctaveTupleToString (t) {
+    return `${t[0]}${t[1]}`
   }
 
   render () {
@@ -78,9 +90,9 @@ class ChordRenderer {
 
     let notes
     if (this.chord.length === 1) {
-      notes = `${noteNameOctaveTupleToString(this.chord[0])}/q, B4/h/r.`
+      notes = `${this._noteNameOctaveTupleToString(this.chord[0])}/q, B4/h/r.`
     } else if (this.chord.length > 1) {
-      notes = `(${this.chord.map(noteNameOctaveTupleToString).join(' ')})/q, B4/h/r.`
+      notes = `(${this.chord.map(this._noteNameOctaveTupleToString).join(' ')})/q, B4/h/r.`
     } else {
       notes = 'B4/1/r'
     }
@@ -94,20 +106,6 @@ class ChordRenderer {
 }
 
 const chordRenderer = new ChordRenderer('chord-display')
-
-chordRenderer.render([])
-
-function showError (message) {
-  const elem = document.getElementById('error-message')
-
-  if (message) {
-    elem.innerText = message
-    elem.classList.remove('invisible')
-  } else {
-    elem.innerText = ''
-    elem.classList.add('invisible')
-  }
-}
 
 function onmidimessage (event) {
   const data = event.data
